@@ -49,12 +49,9 @@ class SimplePlot {
     this.main_group.matrix(this._resetMatrixTranslate(matrix));
 
     this.main_group.translate(0, (-this.min_value + this.OFFSET_TOP) * scales.sy);
-
-    console.log(scales)
   }
 
   _calcScale() {
-    console.log("y diff:", (this.max_value - this.min_value))
     let jq_div = $(this.div);
     return {
       sx: jq_div.width(),
@@ -70,17 +67,35 @@ class SimplePlot {
     for (let i = 0; i < this.points_count; i++)
       points.push([1 / this.points_count * i, 1 - this.OFFSET_BOTTOM]);
 
-    this.polyline = this.main_group.polyline(points).stroke(
+    this.polyline = this.main_group.polyline(points).fill("none").stroke(
       {
         color: this.colors.line,
         width: 0.01,
       }).attr("stroke-linejoin", "round");
   }
 
+  applyDataSimple(data) {
+    let points = [];
+    let max_value = Number.MIN_SAFE_INTEGER;
+    let min_value = Number.MAX_SAFE_INTEGER;
+
+    for (let i = 0; i < data.length; i++) {
+      let value = data[i];
+      points.push([i / data.length, value]);
+      max_value = Math.max(max_value, value);
+      min_value = Math.min(min_value, value);
+    }
+
+    this.max_value = max_value;
+    this.min_value = min_value;
+
+    this.polyline.plot(points);
+    this.auto_scale();
+  }
+
   applyData(data) {
     this._real_points_count = Math.min(this.points_count, data.length);
     let step = data.length / this._real_points_count;
-    console.log("step:", step)
 
     let points = [[0, data[0]]];
     let data_index = 0;
@@ -108,12 +123,10 @@ class SimplePlot {
       min_value = Math.min(min_value, average);
     }
 
-    console.log(points)
-
     this.max_value = max_value;
     this.min_value = min_value;
 
-    this.polyline.animate(1000).plot(points);
+    this.polyline.plot(points);
     this.auto_scale();
   }
 }
