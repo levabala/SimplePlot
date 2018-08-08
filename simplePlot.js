@@ -14,8 +14,8 @@ class SimplePlot {
     this.min_value = 0;
 
     //constants
-    this.OFFSET_BOTTOM = 0.1;
-    this.OFFSET_TOP = 0.1;
+    this.OFFSET_BOTTOM = 0.2;
+    this.OFFSET_TOP = 0.2;
 
     this._createPolyline();
     this.auto_scale();
@@ -80,7 +80,7 @@ class SimplePlot {
     let min_value = Number.MAX_SAFE_INTEGER;
 
     for (let i = 0; i < data.length; i++) {
-      let value = data[i];
+      let value = -data[i];
       points.push([i / data.length, value]);
       max_value = Math.max(max_value, value);
       min_value = Math.min(min_value, value);
