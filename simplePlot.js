@@ -12,6 +12,8 @@ class SimplePlot {
     this.polyline = null;
     this.max_value = 1;
     this.min_value = 0;
+    this.div_width = 0;
+    this.div_height = 0;
 
     //constants
     this.OFFSET_BOTTOM = 0.2;
@@ -19,6 +21,7 @@ class SimplePlot {
 
     this._createPolyline();
     this.auto_scale();
+    this._recalcSize();
   }
 
   _getElMatrix(el) {
@@ -45,18 +48,25 @@ class SimplePlot {
     var scales = this._calcScale();
     this.main_group.scale(scales.sx, scales.sy);
 
-    var matrix = this._getElMatrix(this.main_group);
+    matrix = this._getElMatrix(this.main_group);
     this.main_group.matrix(this._resetMatrixTranslate(matrix));
 
     this.main_group.translate(0, (-this.min_value + this.OFFSET_TOP) * scales.sy);
   }
 
-  _calcScale() {
+  _recalcSize() {
     let jq_div = $(this.div);
+    this.div_width = jq_div.width();
+    this.div_height = jq_div.height();
+  }
+
+  _calcScale() {
+    if (this.div_height * this.div_height == 0)
+      this._recalcSize();
     return {
-      sx: jq_div.width(),
-      sy: jq_div.height() / (this.max_value - this.min_value + this.OFFSET_BOTTOM + this.OFFSET_TOP),
-    }
+      sx: this.div_width,
+      sy: this.div_height / (this.max_value - this.min_value + this.OFFSET_BOTTOM + this.OFFSET_TOP),
+    };
   }
 
   _createPolyline() {
@@ -67,11 +77,10 @@ class SimplePlot {
     for (let i = 0; i < this.points_count; i++)
       points.push([1 / this.points_count * i, 1 - this.OFFSET_BOTTOM]);
 
-    this.polyline = this.main_group.polyline(points).fill("none").stroke(
-      {
-        color: this.colors.line,
-        width: 0.01,
-      }).attr("stroke-linejoin", "round");
+    this.polyline = this.main_group.polyline(points).fill("none").stroke({
+      color: this.colors.line,
+      width: 0.01,
+    }).attr("stroke-linejoin", "round");
   }
 
   applyDataSimple(data) {
@@ -97,7 +106,9 @@ class SimplePlot {
     this._real_points_count = Math.min(this.points_count, data.length);
     let step = data.length / this._real_points_count;
 
-    let points = [[0, data[0]]];
+    let points = [
+      [0, data[0]]
+    ];
     let data_index = 0;
     let buffer = 0;
     let max_value = Number.MIN_SAFE_INTEGER;
